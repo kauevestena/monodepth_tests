@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib
 import os
-from cv2 import imwrite, imread
+from cv2 import imwrite, imread, pyrDown, resize
 import torch
 import time
+from tqdm import tqdm
 
 
 def colorize(value, vmin=None, vmax=None, cmap='gray_r', invalid_val=-99, invalid_mask=None, background_color=(128, 128, 128, 255), gamma_corrected=False, value_transform=None,outpath=None):
@@ -72,3 +73,59 @@ def create_dir(path):
         os.makedirs(path)
         
 create_dir('tests')
+
+sample_camera = {
+    'height': 3456,
+    'width': 5184,
+    'height_mm' : 14.9,
+    'width_mm' : 22.3,
+    'pix_size' : 22.3/5184,
+    'f_mm' : 19.2,
+    'f_norm' : 19.2*(22.3/5184),
+}
+
+sample_camera_quarter = {
+    'height': 864,
+    'width': 1296,
+    'height_mm' : 14.9,
+    'width_mm' : 22.3,
+    'pix_size' : 22.3/1296,
+    'f_mm' : 19.2,
+    'f_norm' : 19.2*(22.3/1296),
+}
+
+def intrinsics_matrix(cameradict=sample_camera):
+    height = cameradict['height']
+    width  = cameradict['width']
+    f_norm = cameradict['f_norm'] 
+        
+    t_h = (height - 1)/2
+    t_w = (width - 1)/2 
+
+    ref_dim = max(height,width)
+
+    f_pix = f_norm * ref_dim
+
+    return np.array([[f_pix, 0, t_w], [0, f_pix, t_h], [0, 0, 1]])
+
+def save_pcloud(color_img, depth_data, pcloud_path, f_pix=1.0):
+    
+    height,width,_ = color_img.shape
+    
+    t_h = (height - 1)/2 
+    t_w = (width - 1)/2 
+    
+    with open(pcloud_path,'w+') as writer:
+        for c in range(width):
+            for l in range(height):
+                pi = np.array([c-t_w,l-t_h,f_pix])
+                pn = pi / np.linalg.norm(pi)
+
+                p = pn * depth_data[l,c]
+
+                color = color_img[l,c]
+
+                if color[0] == 255 and color[1] == 255 and color[2] == 255:
+                    pass
+                else:
+                    writer.write(f'{p[0]:.3f},{p[1]:.3f},{p[2]:.3f},{color[2]},{color[1]},{color[0]}\n')
