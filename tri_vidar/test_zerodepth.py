@@ -1,6 +1,6 @@
 # run it from the repo root
 
-from tri_vidar.lib import *
+from lib import *
 
 
 zerodepth_model = torch.hub.load("TRI-ML/vidar", "ZeroDepth", pretrained=True, trust_repo=True)

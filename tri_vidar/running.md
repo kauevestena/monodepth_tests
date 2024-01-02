@@ -11,7 +11,7 @@
     cd ..
     git clone https://github.com/kauevestena/monodepth_tests.git
 
-### to test performance and download the models, run the tests:
+### to test performance and download the models into cache, run the tests:
 
     python tri_vidar/test_packnet.py
     python tri_vidar/test_zerodepth.py

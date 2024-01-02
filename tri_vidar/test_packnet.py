@@ -1,5 +1,5 @@
 # run it from the repo root
-from tri_vidar.lib import *
+from lib import *
 
 packnet_model = torch.hub.load("TRI-ML/vidar", "PackNet", pretrained=True, trust_repo=True)
 
