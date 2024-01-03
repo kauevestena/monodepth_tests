@@ -5,6 +5,7 @@ from cv2 import imwrite, imread, pyrDown, resize, INTER_CUBIC, INTER_AREA
 import torch
 import time
 from tqdm import tqdm
+from copy import deepcopy
 from constants import *
 
 def create_dir(path):
@@ -107,25 +108,23 @@ def save_pcloud(color_img, depth_data, pcloud_path, f_pix,scale_factor=1.0):
     with open(pcloud_path,'w+') as writer:
         for c in tqdm(range(width)):
             for l in range(height):
-                try:
-                    pi = np.array([c-t_w,l-t_h,f_pix])
-                    pn = pi / np.linalg.norm(pi)
+                pi = np.array([c-t_w,l-t_h,f_pix])
+                pn = pi / np.linalg.norm(pi)
 
-                    p = pn * depth_data[l,c] * scale_factor
+                p = pn * depth_data[l,c] * scale_factor
 
-                    color = color_img[l,c]
+                color = color_img[l,c]
 
-                    if color[0] == 255 and color[1] == 255 and color[2] == 255:
-                        pass
-                    else:
-                        writer.write(f'{p[0]:.3f},{p[1]:.3f},{p[2]:.3f},{color[2]},{color[1]},{color[0]}\n')
-                except:
+                if color[0] == 255 and color[1] == 255 and color[2] == 255:
                     pass
+                else:
+                    writer.write(f'{p[0]:.3f},{p[1]:.3f},{p[2]:.3f},{color[2]},{color[1]},{color[0]}\n')
+
 
 def int_perc_divide(value, scale_percent):
     return int(value * (scale_percent / 100))
 
-def reduce_img_size(img, scale_percent=50):
+def reduce_img_size(img, scale_percent=50.):
     width = int_perc_divide(img.shape[1], scale_percent)
     height = int_perc_divide(img.shape[0], scale_percent)
     dim = (width, height)
@@ -134,7 +133,7 @@ def reduce_img_size(img, scale_percent=50):
 def reduce_img_fixed_width(img, width):
     height = int(width * img.shape[0] / img.shape[1])
     dim = (width, height)
-    
+
     return resize(img, dim)
 
 def simple_tooktime(ref_time,text=None):
@@ -202,7 +201,7 @@ class camera_params:
         return str(self.params)
 
     def resized_version(self, factor):
-        params = self.params
+        params = deepcopy(self.params) # was a deep primary mistake kkkk (without it kkkk)
 
         params['height'] = int_perc_divide(params['height'], factor)
         params['width'] = int_perc_divide(params['width'], factor)
